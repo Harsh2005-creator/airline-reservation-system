@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Airline Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            background-image: url("../screenshots/Bgimage.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: black;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .ticket-box {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="airline-navbar">
+        ✈️ Airline Reservation System
+    </div>
+
+    <div style="text-align:center; margin:10px;">
+        <a href="bookings.html">
+            <button class="btn">My Bookings</button>
+        </a>
+    </div>
+
+    <div class="container">
+
+        <h2 class="page-title">Available Flights</h2>
+
+        <!-- SEARCH + FILTER -->
+        <div style="text-align:center; margin-bottom:20px;">
+
+            <input type="text" id="searchInput" placeholder="Search..."
+                style="padding:10px; width:200px; border-radius:8px; border:1px solid #ccc;">
+
+            <br><br>
+
+            <select id="sourceSelect"></select>
+            <select id="destSelect"></select>
+
+            <input type="date" id="dateSelect">
+
+            <br><br>
+
+            <select id="sortPrice">
+                <option value="">Sort Price</option>
+                <option value="low">Low → High</option>
+                <option value="high">High → Low</option>
+            </select>
+
+            <button class="btn" onclick="filterFlights()">Search</button>
+
+        </div>
+
+        <div id="flights" class="flight-grid"></div>
+
+    </div>
+
+    <!-- SEAT POPUP -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+
+            <h3>Select Seat</h3>
+            <div id="seatGrid" class="seat-grid"></div>
+
+            <br>
+            <button class="btn" onclick="showTicket()">Continue</button>
+            <br><br>
+            <button class="btn cancel-btn" onclick="closePopup()">Cancel</button>
+
+        </div>
+    </div>
+
+    <!-- 🎫 TICKET POPUP -->
+    <div id="ticketPopup" class="popup">
+        <div class="popup-content ticket-box">
+
+            <h3>🎫 Your Ticket</h3>
+
+            <p id="ticketDetails"></p>
+
+            <button class="btn" onclick="goToPayment()">Proceed to Payment</button>
+            <br><br>
+            <button class="btn cancel-btn" onclick="closeTicket()">Close</button>
+
+        </div>
+    </div>
+
+    <script>
+
+        let selectedFlight = null;
+        let selectedSeat = null;
+        let selectedPrice = null;
+        let selectedFlightData = null;
+        let allFlights = [];
+        let priceMap = {};
+
+        // LOAD
+        fetch("http://127.0.0.1:5000/flights")
+            .then(res => res.json())
+            .then(data => {
+
+                data.forEach(f => {
+                    priceMap[f.flight_id] = Math.floor(Math.random() * 3000) + 2000;
+                });
+
+                allFlights = data;
+                populateDropdowns(data);
+                renderFlights(data);
+            });
+
+        // SEARCH
+        document.getElementById("searchInput").addEventListener("input", filterFlights);
+
+        // DROPDOWNS
+        function populateDropdowns(data) {
+
+            let src = document.getElementById("sourceSelect");
+            let dest = document.getElementById("destSelect");
+
+            src.innerHTML = `<option value="">Source</option>`;
+            dest.innerHTML = `<option value="">Destination</option>`;
+
+            let sources = new Set();
+            let destinations = new Set();
+
+            data.forEach(f => {
+                sources.add(f.source);
+                destinations.add(f.destination);
+            });
+
+            sources.forEach(s => src.innerHTML += `<option>${s}</option>`);
+            destinations.forEach(d => dest.innerHTML += `<option>${d}</option>`);
+        }
+
+        // FILTER
+        function filterFlights() {
+
+            let text = document.getElementById("searchInput").value.toLowerCase();
+            let source = document.getElementById("sourceSelect").value;
+            let dest = document.getElementById("destSelect").value;
+            let date = document.getElementById("dateSelect").value;
+            let sort = document.getElementById("sortPrice").value;
+
+            let filtered = allFlights.filter(f => {
+
+                let flightDate = f.departure.split("T")[0];
+
+                return (
+                    (text === "" || f.flight_no.toLowerCase().includes(text) ||
+                        f.source.toLowerCase().includes(text) ||
+                        f.destination.toLowerCase().includes(text)) &&
+                    (source === "" || f.source === source) &&
+                    (dest === "" || f.destination === dest) &&
+                    (date === "" || flightDate === date)
+                );
+            });
+
+            if (sort === "low") filtered.sort((a, b) => priceMap[a.flight_id] - priceMap[b.flight_id]);
+            if (sort === "high") filtered.sort((a, b) => priceMap[b.flight_id] - priceMap[a.flight_id]);
+
+            renderFlights(filtered);
+        }
+
+        // RENDER
+        function renderFlights(data) {
+
+            let html = "";
+            let cheapest = Math.min(...data.map(f => priceMap[f.flight_id]));
+
+            data.forEach(f => {
+
+                let price = priceMap[f.flight_id];
+                let dep = new Date(f.departure).toLocaleTimeString();
+                let arr = new Date(f.arrival).toLocaleTimeString();
+
+                html += `
+        <div class="flight-card" style="${price === cheapest ? 'border:2px solid green;' : ''}">
+
+            ${price === cheapest ? "<div style='color:green;'>CHEAPEST</div>" : ""}
+
+            <div class="flight-icon">✈️</div>
+            <div class="flight-number">${f.flight_no}</div>
+            <div>${f.source} → ${f.destination}</div>
+            <div>⏱ ${dep} → ${arr}</div>
+            <div class="flight-price">₹${price}</div>
+
+            <button class="btn"
+                onclick="openPopup(${f.flight_id}, ${price})">
+                Select Seat
+            </button>
+
+        </div>`;
+            });
+
+            document.getElementById("flights").innerHTML = html;
+        }
+
+        // OPEN SEAT
+        function openPopup(id, price) {
+
+            selectedFlight = id;
+            selectedPrice = price;
+            selectedFlightData = allFlights.find(f => f.flight_id == id);
+
+            document.getElementById("popup").style.display = "flex";
+
+            fetch(`http://127.0.0.1:5000/seats/${id}`)
+                .then(res => res.json())
+                .then(data => {
+
+                    let html = "";
+
+                    data.forEach(seat => {
+                        let cls = seat.status === "booked" ? "seat booked" : "seat available";
+
+                        html += `<div class="${cls}" onclick="selectSeat(${seat.seat_id},this)">
+                        ${seat.seat_no}
+                     </div>`;
+                    });
+
+                    document.getElementById("seatGrid").innerHTML = html;
+                });
+        }
+
+        // SELECT SEAT
+        function selectSeat(id, el) {
+
+            if (el.classList.contains("booked")) return;
+
+            document.querySelectorAll(".seat").forEach(s => s.classList.remove("selected"));
+
+            el.classList.add("selected");
+            selectedSeat = id;
+        }
+
+        // 🎫 SHOW TICKET
+        function showTicket() {
+
+            if (!selectedSeat) {
+                alert("Select seat first");
+                return;
+            }
+
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("ticketPopup").style.display = "flex";
+
+            document.getElementById("ticketDetails").innerHTML = `
+        Flight: <b>${selectedFlightData.flight_no}</b><br>
+        Route: ${selectedFlightData.source} → ${selectedFlightData.destination}<br>
+        Seat ID: ${selectedSeat}<br>
+        Price: ₹${selectedPrice}
+    `;
+        }
+
+        // PAYMENT
+        function goToPayment() {
+
+            localStorage.setItem("flight_id", selectedFlight);
+            localStorage.setItem("seat_id", selectedSeat);
+            localStorage.setItem("amount", selectedPrice);
+
+            window.location = "payment.html";
+        }
+
+        function closePopup() { document.getElementById("popup").style.display = "none"; }
+        function closeTicket() { document.getElementById("ticketPopup").style.display = "none"; }
+
+    </script>
+
+</body>
+
+</html>

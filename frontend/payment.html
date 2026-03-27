@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Payment</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="airline-navbar">💳 Payment</div>
+
+    <div class="container">
+
+        <div class="login-container">
+
+            <h2 class="login-title">Payment</h2>
+
+            <p id="amount"></p>
+
+            <input type="text" placeholder="Card Number"><br><br>
+            <input type="text" placeholder="CVV"><br><br>
+
+            <button class="btn" onclick="pay()">Pay Now</button>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // GET DATA FROM LOCAL STORAGE
+        let amount = localStorage.getItem("amount");
+        let flight_id = localStorage.getItem("flight_id");
+        let seat_id = localStorage.getItem("seat_id");
+
+        document.getElementById("amount").innerText = "Amount: ₹" + amount;
+
+        // 💳 PAYMENT + BOOKING
+        function pay() {
+
+            if (!flight_id || !seat_id) {
+                alert("Something went wrong!");
+                return;
+            }
+
+            // simulate payment delay
+            alert("Processing Payment...");
+
+            // CALL BACKEND TO BOOK
+            fetch("http://127.0.0.1:5000/book", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_id: 3,
+                    flight_id: flight_id,
+                    seat_id: seat_id
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    alert("Payment Successful ✅\nBooking Confirmed 🎉");
+
+                    // clear storage (optional)
+                    localStorage.removeItem("seat_id");
+
+                    window.location = "dashboard.html";
+                });
+        }
+
+    </script>
+
+</body>
+
+</html>

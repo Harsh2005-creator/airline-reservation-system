@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="airline-navbar">
+        ✈️ Airline Reservation System
+    </div>
+
+    <div class="login-container">
+
+        <h2 class="login-title">Login</h2>
+
+        <div class="input-group">
+            <input type="text" id="email" placeholder="Enter Email">
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Enter Password">
+        </div>
+
+        <button class="btn" onclick="login()">Login</button>
+
+    </div>
+
+    <script>
+        function login() {
+            localStorage.setItem("user_id", 3); // temp
+            window.location = "dashboard.html";
+        }
+    </script>
+
+</body>
+
+</html>

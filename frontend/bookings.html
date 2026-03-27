@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Bookings</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="airline-navbar">📖 My Bookings</div>
+
+    <div style="text-align:center; margin:10px;">
+        <a href="dashboard.html">
+            <button class="btn">← Back to Dashboard</button>
+        </a>
+    </div>
+
+    <div class="container">
+
+        <div id="bookingList" class="flight-grid"></div>
+
+    </div>
+
+    <script>
+
+        let user_id = 3;
+
+        fetch("http://127.0.0.1:5000/bookings")
+            .then(res => res.json())
+            .then(data => {
+
+                let html = "";
+
+                // FILTER BY USER
+                let myBookings = data.filter(b => b.name === "Harsh");
+
+                myBookings.forEach(b => {
+
+                    let statusColor = b.status === "cancelled" ? "red" : "green";
+
+                    html += `
+        <div class="flight-card">
+
+            <div class="flight-icon">🎫</div>
+
+            <div class="flight-number">${b.flight_no}</div>
+
+            <div style="margin:10px 0;">
+                Seat: <b>${b.seat_no}</b>
+            </div>
+
+            <div style="color:${statusColor}; font-weight:bold;">
+                ${b.status.toUpperCase()}
+            </div>
+
+            <br>
+
+            ${b.status !== "cancelled" ? `
+            <button class="btn cancel-btn"
+                onclick="cancelBooking(${b.booking_id})">
+                Cancel Ticket
+            </button>
+            ` : ""}
+
+        </div>
+        `;
+                });
+
+                document.getElementById("bookingList").innerHTML = html;
+            });
+
+        // CANCEL BOOKING
+        function cancelBooking(id) {
+
+            if (!confirm("Are you sure you want to cancel?")) return;
+
+            fetch(`http://127.0.0.1:5000/cancel/${id}`, {
+                method: "DELETE"
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    location.reload();
+                });
+        }
+
+    </script>
+
+</body>
+
+</html>
