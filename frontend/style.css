@@ -1,13 +1,27 @@
 :root {
-    --primary-color: #2e7d32;
-    --primary-dark: #1b5e20;
-    --accent-color: #2196f3;
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
+    /* Main Deep Blue Theme */
+    --primary-color: #1b3f8b;
+    --primary-dark: #0f2c6b;
+
+    /* Complementary Accent (Warm Gold/Amber) */
+    --accent-color: #ffb300;
+    --accent-dark: #ff8f00;
+
+    /* Text & Backgrounds */
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
     --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.2);
+    --bg-secondary: #f0f4f8;
+    /* Very subtle cool blue-grey */
+
+    /* Gradients */
+    --main-gradient: linear-gradient(180deg, var(--primary-dark), var(--primary-color));
+    --accent-gradient: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+
+    /* UI Elements */
+    --shadow-sm: 0 2px 6px rgba(15, 44, 107, 0.1);
+    /* Shadows tinted with primary dark */
+    --shadow-lg: 0 8px 20px rgba(15, 44, 107, 0.2);
     --border-radius: 12px;
     --transition: all 0.3s ease;
 }
@@ -15,13 +29,14 @@
 /* BODY */
 body {
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    background: linear-gradient(135deg, var(--bg-secondary), #e2e8f0);
     margin: 0;
+    color: var(--text-primary);
 }
 
 /* NAVBAR */
 .airline-navbar {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    background: var(--main-gradient);
     color: white;
     padding: 1.2rem;
     text-align: center;
@@ -43,7 +58,7 @@ body {
     margin-bottom: 2rem;
     font-size: 2rem;
     font-weight: bold;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    background: var(--main-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -57,13 +72,15 @@ body {
 
 /* CARD */
 .flight-card {
-    background: white;
+    background: var(--bg-primary);
     padding: 1.5rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
     text-align: center;
     transition: var(--transition);
     position: relative;
+    overflow: hidden;
+    /* Keeps the before element neat */
 }
 
 .flight-card:hover {
@@ -79,20 +96,24 @@ body {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    background: var(--accent-gradient);
+    /* Pops beautifully against the blue */
 }
 
 /* ICON */
 .flight-icon {
     font-size: 2.5rem;
     margin-bottom: 1rem;
+    color: var(--primary-color);
 }
 
 /* FLIGHT NUMBER */
 .flight-number {
     font-size: 1.4rem;
     font-weight: bold;
-    color: var(--primary-dark);
+    background: var(--main-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* ROUTE */
@@ -103,7 +124,7 @@ body {
 
 /* BUTTON */
 .btn {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    background: var(--main-gradient);
     color: white;
     border: none;
     padding: 0.7rem 1.2rem;
@@ -116,10 +137,11 @@ body {
 .btn:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
+    background: linear-gradient(180deg, var(--primary-color), var(--primary-dark));
+    /* Inverts on hover */
 }
 
 /* === LOGIN PAGE === */
-
 .login-container {
     max-width: 400px;
     margin: 80px auto;
@@ -134,7 +156,7 @@ body {
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
     font-weight: bold;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    background: var(--main-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -150,15 +172,17 @@ body {
     border: 1px solid #ccc;
     outline: none;
     transition: var(--transition);
+    box-sizing: border-box;
+    /* Ensures padding doesn't break width */
 }
 
 .input-group input:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(46, 125, 50, 0.3);
+    box-shadow: 0 0 5px rgba(27, 63, 139, 0.3);
+    /* Updated to match blue theme */
 }
 
 /* === INDEX PAGE === */
-
 .home-container {
     text-align: center;
     margin-top: 100px;
@@ -168,7 +192,7 @@ body {
     font-size: 2.5rem;
     font-weight: bold;
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    background: var(--main-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -181,13 +205,21 @@ body {
 .home-btn {
     padding: 0.9rem 1.5rem;
     font-size: 1rem;
+    background: var(--accent-gradient);
+    /* Uses gold to stand out on the home page */
+    color: #fff;
+}
+
+.home-btn:hover {
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent-color));
 }
 
 /* PRICE */
 .flight-price {
     font-size: 1.2rem;
     font-weight: bold;
-    color: var(--primary-color);
+    color: var(--accent-dark);
+    /* Gold price tag grabs attention */
     margin-bottom: 1rem;
 }
 
@@ -199,9 +231,11 @@ body {
     height: 100%;
     top: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 44, 107, 0.6);
+    /* Tinted backdrop */
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 
 .popup-content {
@@ -211,11 +245,6 @@ body {
     text-align: center;
     width: 300px;
     box-shadow: var(--shadow-lg);
-}
-
-/* CANCEL BUTTON */
-.cancel-btn {
-    background: #dc3545;
 }
 
 /* SEAT GRID */
@@ -234,24 +263,171 @@ body {
     font-size: 0.8rem;
     text-align: center;
     font-weight: bold;
+    transition: var(--transition);
 }
 
 /* COLORS */
 .seat.available {
-    background: #28a745;
+    background: #e2e8f0;
+    color: var(--text-primary);
+}
+
+.seat.available:hover {
+    background: var(--primary-color);
     color: white;
 }
 
 .seat.booked {
-    background: #dc3545;
-    color: white;
+    background: #cbd5e1;
+    color: #94a3b8;
     cursor: not-allowed;
 }
 
 .seat.selected {
-    background: #007bff;
+    background: var(--accent-color);
+    color: white;
 }
 
+/* CANCEL BUTTON */
 .cancel-btn {
-    background: #dc3545;
+    background: #ef4444;
+    /* Clean red */
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #dc2626;
+}
+
+/* ================= DASHBOARD UI UPGRADE ================= */
+
+/* SIDEBAR */
+.sidebar {
+    width: 230px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: var(--main-gradient);
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--accent-color);
+    /* Title pops in gold */
+}
+
+.sidebar a {
+    text-decoration: none;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 5px 0;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background: rgba(255, 255, 255, 0.15);
+    padding-left: 18px;
+    /* Smooth indent hover effect */
+}
+
+/* MAIN SHIFT */
+.main {
+    margin-left: 250px;
+    padding: 20px;
+}
+
+/* TOP CARDS */
+.top-cards {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    flex: 1;
+    background: var(--main-gradient);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #e2e8f0;
+}
+
+.stat-card p {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    /* Stat numbers in gold */
+}
+
+/* SEARCH BAR IMPROVE */
+.search-bar {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.search-bar input,
+.search-bar select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin: 5px;
+    outline: none;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+    border-color: var(--primary-color);
+}
+
+/* ADMIN FORM */
+.admin-form {
+    max-width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+}
+
+.admin-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+/* MOBILE */
+@media(max-width:768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main {
+        margin-left: 0;
+    }
+
+    .top-cards {
+        flex-direction: column;
+    }
 }

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ✅ SIDEBAR -->
+    <div class="sidebar">
+        <h2>🛠 Admin</h2>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#">Manage Flights</a>
+        <a href="#">Bookings</a>
+    </div>
+
+    <!-- ✅ MAIN -->
+    <div class="main">
+
+        <div class="airline-navbar">🛠️ Admin Panel</div>
+
+        <!-- ✅ TOP CARDS -->
+        <div class="top-cards">
+            <div class="stat-card">
+                <h3>Total Flights</h3>
+                <p id="totalFlights">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Bookings</h3>
+                <p id="totalBookings">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>System Status</h3>
+                <p>Active</p>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <!-- ✅ ADD FLIGHT FORM -->
+            <h2>Add Flight</h2>
+
+            <div class="admin-form">
+                <input type="text" id="flight_no" placeholder="Flight No">
+                <input type="text" id="source" placeholder="Source">
+                <input type="text" id="destination" placeholder="Destination">
+                <input type="datetime-local" id="departure">
+                <input type="datetime-local" id="arrival">
+
+                <button class="btn" onclick="addFlight()">Add Flight</button>
+            </div>
+
+            <hr><br>
+
+            <!-- ✅ FLIGHT LIST -->
+            <h2>All Flights</h2>
+            <div id="flightList" class="flight-grid"></div>
+
+            <hr><br>
+
+            <!-- ✅ BOOKINGS -->
+            <h2>All Bookings</h2>
+            <div id="bookingList" class="flight-grid"></div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ADD FLIGHT
+        function addFlight() {
+
+            fetch("http://127.0.0.1:5000/add_flight", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    flight_no: document.getElementById("flight_no").value,
+                    source: document.getElementById("source").value,
+                    destination: document.getElementById("destination").value,
+                    departure: document.getElementById("departure").value,
+                    arrival: document.getElementById("arrival").value,
+                    total_seats: 20
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert("Flight Added ✅");
+                    loadFlights();
+                });
+        }
+
+        // LOAD FLIGHTS
+        function loadFlights() {
+
+            fetch("http://127.0.0.1:5000/flights")
+                .then(res => res.json())
+                .then(data => {
+
+                    document.getElementById("totalFlights").innerText = data.length;
+
+                    let html = "";
+
+                    data.forEach(f => {
+                        html += `
+            <div class="flight-card">
+                <h3>${f.flight_no}</h3>
+                <p>${f.source} → ${f.destination}</p>
+                <button class="btn cancel-btn"
+                    onclick="deleteFlight(${f.flight_id})">
+                    Delete
+                </button>
+            </div>
+            `;
+                    });
+
+                    document.getElementById("flightList").innerHTML = html;
+                });
+        }
+
+        // DELETE FLIGHT
+        function deleteFlight(id) {
+
+            fetch(`http://127.0.0.1:5000/delete_flight/${id}`, {
+                method: "DELETE"
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert("Deleted ❌");
+                    loadFlights();
+                });
+        }
+
+        // LOAD BOOKINGS
+        function loadBookings() {
+
+            fetch("http://127.0.0.1:5000/bookings")
+                .then(res => res.json())
+                .then(data => {
+
+                    document.getElementById("totalBookings").innerText = data.length;
+
+                    let html = "";
+
+                    data.forEach(b => {
+                        html += `
+            <div class="flight-card">
+                <h3>${b.flight_no}</h3>
+                <p>Seat: ${b.seat_no}</p>
+                <p>Status: ${b.status}</p>
+            </div>
+            `;
+                    });
+
+                    document.getElementById("bookingList").innerHTML = html;
+                });
+        }
+
+        // INIT
+        loadFlights();
+        loadBookings();
+
+    </script>
+
+</body>
+
+</html>

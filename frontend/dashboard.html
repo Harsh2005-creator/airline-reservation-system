@@ -32,46 +32,64 @@
         ✈️ Airline Reservation System
     </div>
 
-    <div style="text-align:center; margin:10px;">
-        <a href="bookings.html">
-            <button class="btn">My Bookings</button>
-        </a>
+    <div class="sidebar">
+        <h2>✈ Airline</h2>
+        <a href="#">Dashboard</a>
+        <a href="bookings.html">Bookings</a>
+        <a href="#" onclick="openAdminLogin()">Admin</a>
     </div>
+    <div class="main">
 
-    <div class="container">
+        <div class="container">
 
-        <h2 class="page-title">Available Flights</h2>
+            <h2 class="page-title">Available Flights</h2>
 
-        <!-- SEARCH + FILTER -->
-        <div style="text-align:center; margin-bottom:20px;">
+            <div style="text-align:center; margin-bottom:20px;">
 
-            <input type="text" id="searchInput" placeholder="Search..."
-                style="padding:10px; width:200px; border-radius:8px; border:1px solid #ccc;">
+                <input type="text" id="searchInput" placeholder="Search..."
+                    style="padding:10px; width:200px; border-radius:8px; border:1px solid #ccc;">
 
-            <br><br>
+                <br><br>
 
-            <select id="sourceSelect"></select>
-            <select id="destSelect"></select>
+                <select id="sourceSelect"></select>
+                <select id="destSelect"></select>
 
-            <input type="date" id="dateSelect">
+                <input type="date" id="dateSelect">
 
-            <br><br>
+                <br><br>
 
-            <select id="sortPrice">
-                <option value="">Sort Price</option>
-                <option value="low">Low → High</option>
-                <option value="high">High → Low</option>
-            </select>
+                <select id="sortPrice">
+                    <option value="">Sort Price</option>
+                    <option value="low">Low → High</option>
+                    <option value="high">High → Low</option>
+                </select>
 
-            <button class="btn" onclick="filterFlights()">Search</button>
+                <button class="btn" onclick="filterFlights()">Search</button>
+
+            </div>
+
+            <div id="flights" class="flight-grid"></div>
 
         </div>
-
-        <div id="flights" class="flight-grid"></div>
-
     </div>
 
-    <!-- SEAT POPUP -->
+    <!-- 🔐 ADMIN LOGIN POPUP -->
+    <div id="adminPopup" class="popup">
+        <div class="popup-content">
+
+            <h3>Admin Login</h3>
+
+            <input type="email" id="adminEmail" placeholder="Email"><br><br>
+            <input type="password" id="adminPass" placeholder="Password"><br><br>
+
+            <button class="btn" onclick="checkAdmin()">Login</button>
+            <br><br>
+            <button class="btn cancel-btn" onclick="closeAdmin()">Cancel</button>
+
+        </div>
+    </div>
+
+    <!-- EXISTING POPUPS -->
     <div id="popup" class="popup">
         <div class="popup-content">
 
@@ -86,12 +104,10 @@
         </div>
     </div>
 
-    <!-- 🎫 TICKET POPUP -->
     <div id="ticketPopup" class="popup">
         <div class="popup-content ticket-box">
 
             <h3>🎫 Your Ticket</h3>
-
             <p id="ticketDetails"></p>
 
             <button class="btn" onclick="goToPayment()">Proceed to Payment</button>
@@ -110,7 +126,28 @@
         let allFlights = [];
         let priceMap = {};
 
-        // LOAD
+        // 🔐 ADMIN LOGIN
+        function openAdminLogin() {
+            document.getElementById("adminPopup").style.display = "flex";
+        }
+
+        function closeAdmin() {
+            document.getElementById("adminPopup").style.display = "none";
+        }
+
+        function checkAdmin() {
+
+            let email = document.getElementById("adminEmail").value;
+            let pass = document.getElementById("adminPass").value;
+
+            if (email === "harsh.ramrakhiani@gmail.com" && pass === "Harshsj@2005") {
+                window.location = "admin.html";
+            } else {
+                alert("Invalid Email or Password ❌");
+            }
+        }
+
+        // LOAD FLIGHTS
         fetch("http://127.0.0.1:5000/flights")
             .then(res => res.json())
             .then(data => {
@@ -127,7 +164,7 @@
         // SEARCH
         document.getElementById("searchInput").addEventListener("input", filterFlights);
 
-        // DROPDOWNS
+        // DROPDOWN
         function populateDropdowns(data) {
 
             let src = document.getElementById("sourceSelect");
@@ -200,8 +237,7 @@
             <div>⏱ ${dep} → ${arr}</div>
             <div class="flight-price">₹${price}</div>
 
-            <button class="btn"
-                onclick="openPopup(${f.flight_id}, ${price})">
+            <button class="btn" onclick="openPopup(${f.flight_id}, ${price})">
                 Select Seat
             </button>
 
@@ -211,9 +247,8 @@
             document.getElementById("flights").innerHTML = html;
         }
 
-        // OPEN SEAT
+        // SEAT
         function openPopup(id, price) {
-
             selectedFlight = id;
             selectedPrice = price;
             selectedFlightData = allFlights.find(f => f.flight_id == id);
@@ -223,39 +258,26 @@
             fetch(`http://127.0.0.1:5000/seats/${id}`)
                 .then(res => res.json())
                 .then(data => {
-
                     let html = "";
-
                     data.forEach(seat => {
                         let cls = seat.status === "booked" ? "seat booked" : "seat available";
-
                         html += `<div class="${cls}" onclick="selectSeat(${seat.seat_id},this)">
                         ${seat.seat_no}
                      </div>`;
                     });
-
                     document.getElementById("seatGrid").innerHTML = html;
                 });
         }
 
-        // SELECT SEAT
         function selectSeat(id, el) {
-
             if (el.classList.contains("booked")) return;
-
             document.querySelectorAll(".seat").forEach(s => s.classList.remove("selected"));
-
             el.classList.add("selected");
             selectedSeat = id;
         }
 
-        // 🎫 SHOW TICKET
         function showTicket() {
-
-            if (!selectedSeat) {
-                alert("Select seat first");
-                return;
-            }
+            if (!selectedSeat) return alert("Select seat first");
 
             document.getElementById("popup").style.display = "none";
             document.getElementById("ticketPopup").style.display = "flex";
@@ -268,13 +290,10 @@
     `;
         }
 
-        // PAYMENT
         function goToPayment() {
-
             localStorage.setItem("flight_id", selectedFlight);
             localStorage.setItem("seat_id", selectedSeat);
             localStorage.setItem("amount", selectedPrice);
-
             window.location = "payment.html";
         }
 
