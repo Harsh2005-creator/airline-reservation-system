@@ -1,7 +1,48 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
+import joblib
+import os
 
 admin_routes = Blueprint('admin', __name__)
+
+# ==========================================
+# 🤖 LOAD ML MODEL FOR ADMIN DASHBOARD
+# ==========================================
+MODEL_PATH = os.path.join(os.path.dirname(__file__), '../flight_price_model.pkl')
+price_model = None
+try:
+    if os.path.exists(MODEL_PATH):
+        price_model = joblib.load(MODEL_PATH)
+except Exception as e:
+    print(f"Error loading ML model in admin: {e}")
+
+
+# ==========================================
+# 📈 GET ML GRAPH DATA (NEW ROUTE)
+# ==========================================
+@admin_routes.route('/ml_graph', methods=['GET'])
+def get_ml_graph():
+    if not price_model:
+        return jsonify({"error": "Model not found"}), 400
+
+    total_seats = 180
+    graph_data = []
+
+    # Simulate seats dropping from 180 down to 1
+    # We step by 5 to make a smooth chart
+    for available in range(180, 0, -5):
+        price = price_model.predict([[total_seats, available]])[0]
+        graph_data.append({
+            "seats_left": available,
+            "predicted_price": int(price)
+        })
+        
+    # Also grab the absolute last seat price (1 seat left)
+    final_price = price_model.predict([[total_seats, 1]])[0]
+    graph_data.append({"seats_left": 1, "predicted_price": int(final_price)})
+
+    return jsonify(graph_data)
+
 
 # ---------------- ADD FLIGHT ----------------
 @admin_routes.route('/add_flight', methods=['POST'])

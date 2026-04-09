@@ -4,6 +4,9 @@
 <head>
     <title>Admin Panel</title>
     <link rel="stylesheet" href="style.css">
+
+    <!-- ✅ ADD THIS (Chart.js REQUIRED) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -39,6 +42,12 @@
 
         <div class="container">
 
+            <!-- ✅ ML GRAPH SECTION -->
+            <h2>📈 AI Dynamic Pricing Graph</h2>
+            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 40px;">
+                <canvas id="aiPricingChart"></canvas>
+            </div>
+
             <!-- ✅ ADD FLIGHT FORM -->
             <h2>Add Flight</h2>
 
@@ -69,10 +78,59 @@
     </div>
 
     <script>
+        let chartInstance = null;
 
-        // ADD FLIGHT
+        // ✅ LOAD ML GRAPH
+        function loadMLGraph() {
+            fetch("http://127.0.0.1:5000/ml_graph")
+                .then(res => res.json())
+                .then(data => {
+
+                    if (!data || data.error) return;
+
+                    const canvas = document.getElementById('aiPricingChart');
+                    if (!canvas) return;
+
+                    const ctx = canvas.getContext('2d');
+
+                    const labels = data.map(d => d.seats_left + " seats");
+                    const prices = data.map(d => d.predicted_price);
+
+                    // 🔥 Fix duplicate chart issue
+                    if (chartInstance) chartInstance.destroy();
+
+                    chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'AI Predicted Ticket Price (₹)',
+                                data: prices,
+                                borderColor: '#ff8f00',
+                                backgroundColor: 'rgba(255,143,0,0.2)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    title: { display: true, text: 'Seats Left' }
+                                },
+                                y: {
+                                    title: { display: true, text: 'Price (₹)' }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        // ✅ ADD FLIGHT
         function addFlight() {
-
             fetch("http://127.0.0.1:5000/add_flight", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -86,15 +144,15 @@
                 })
             })
                 .then(res => res.json())
-                .then(data => {
+                .then(() => {
                     alert("Flight Added ✅");
                     loadFlights();
+                    loadMLGraph(); // refresh graph
                 });
         }
 
-        // LOAD FLIGHTS
+        // ✅ LOAD FLIGHTS
         function loadFlights() {
-
             fetch("http://127.0.0.1:5000/flights")
                 .then(res => res.json())
                 .then(data => {
@@ -105,37 +163,35 @@
 
                     data.forEach(f => {
                         html += `
-            <div class="flight-card">
-                <h3>${f.flight_no}</h3>
-                <p>${f.source} → ${f.destination}</p>
-                <button class="btn cancel-btn"
-                    onclick="deleteFlight(${f.flight_id})">
-                    Delete
-                </button>
-            </div>
-            `;
+                        <div class="flight-card">
+                            <h3>${f.flight_no}</h3>
+                            <p>${f.source} → ${f.destination}</p>
+                            <button class="btn cancel-btn"
+                                onclick="deleteFlight(${f.flight_id})">
+                                Delete
+                            </button>
+                        </div>`;
                     });
 
                     document.getElementById("flightList").innerHTML = html;
                 });
         }
 
-        // DELETE FLIGHT
+        // ✅ DELETE FLIGHT
         function deleteFlight(id) {
-
             fetch(`http://127.0.0.1:5000/delete_flight/${id}`, {
                 method: "DELETE"
             })
                 .then(res => res.json())
-                .then(data => {
+                .then(() => {
                     alert("Deleted ❌");
                     loadFlights();
+                    loadMLGraph(); // refresh graph
                 });
         }
 
-        // LOAD BOOKINGS
+        // ✅ LOAD BOOKINGS
         function loadBookings() {
-
             fetch("http://127.0.0.1:5000/bookings")
                 .then(res => res.json())
                 .then(data => {
@@ -146,22 +202,21 @@
 
                     data.forEach(b => {
                         html += `
-            <div class="flight-card">
-                <h3>${b.flight_no}</h3>
-                <p>Seat: ${b.seat_no}</p>
-                <p>Status: ${b.status}</p>
-            </div>
-            `;
+                        <div class="flight-card">
+                            <h3>${b.flight_no}</h3>
+                            <p>Seat: ${b.seat_no}</p>
+                            <p>Status: ${b.status}</p>
+                        </div>`;
                     });
 
                     document.getElementById("bookingList").innerHTML = html;
                 });
         }
 
-        // INIT
+        // ✅ INIT
+        loadMLGraph();
         loadFlights();
         loadBookings();
-
     </script>
 
 </body>
