@@ -152,8 +152,9 @@
             .then(res => res.json())
             .then(data => {
 
+                // 🤖 ML UPDATE: Use backend ML price instead of random numbers
                 data.forEach(f => {
-                    priceMap[f.flight_id] = Math.floor(Math.random() * 3000) + 2000;
+                    priceMap[f.flight_id] = f.price; 
                 });
 
                 allFlights = data;

@@ -1,7 +1,30 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
+import joblib
+import os
+import warnings
+
+# Suppress minor ML warnings in the terminal
+warnings.filterwarnings("ignore")
 
 booking_routes = Blueprint('booking', __name__)
+
+# =========================================================
+# 🤖 ML MODEL LOADING 
+# =========================================================
+# Look for the trained model file in the backend folder
+MODEL_PATH = os.path.join(os.path.dirname(__file__), '../flight_price_model.pkl')
+price_model = None
+
+try:
+    if os.path.exists(MODEL_PATH):
+        price_model = joblib.load(MODEL_PATH)
+        print("✅ ML Price Model Loaded Successfully!")
+    else:
+        print(f"⚠️ Warning: ML model not found at {MODEL_PATH}. Using default prices.")
+except Exception as e:
+    print(f"⚠️ Error loading ML model: {e}")
+
 
 # ------------------ GET FLIGHTS ------------------
 @booking_routes.route('/flights', methods=['GET'])
@@ -9,16 +32,36 @@ def get_flights():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
+    # Added COALESCE to ensure available_seats defaults to 0 instead of None
     cursor.execute("""
         SELECT f.*, 
         COUNT(s.seat_id) AS total_seats,
-        SUM(CASE WHEN s.status='available' THEN 1 ELSE 0 END) AS available_seats
+        COALESCE(SUM(CASE WHEN s.status='available' THEN 1 ELSE 0 END), 0) AS available_seats
         FROM flights f
         LEFT JOIN seats s ON f.flight_id = s.flight_id
         GROUP BY f.flight_id
     """)
+    
+    flights = cursor.fetchall()
 
-    return jsonify(cursor.fetchall())
+    # =========================================================
+    # 🤖 ML DYNAMIC PRICING LOGIC
+    # =========================================================
+    for flight in flights:
+        total = int(flight['total_seats'])
+        available = int(flight['available_seats']) # Cast to int (MySQL SUM returns Decimal)
+        
+        # If the model is loaded and the flight has seats
+        if price_model and total > 0:
+            # Predict price based on total seats and available seats (Supply & Demand)
+            predicted_price = price_model.predict([[total, available]])[0]
+            # Ensure the price never drops below ₹1000
+            flight['price'] = max(1000, int(predicted_price))
+        else:
+            # Fallback price if model isn't trained yet or flight has 0 seats
+            flight['price'] = 2500 
+
+    return jsonify(flights)
 
 
 # ------------------ GET SEATS ------------------
